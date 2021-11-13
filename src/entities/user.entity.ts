@@ -1,6 +1,6 @@
 import { Entity, PrimaryKey, Property } from "mikro-orm";
 import { MAX_NAME_LEN } from "../globals";
-import { secureId, uuid } from "../util/uuid";
+import { secureId, uuid } from "../util/id";
 
 @Entity()
 class User {

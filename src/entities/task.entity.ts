@@ -1,6 +1,6 @@
 import { ArrayType, Entity, ManyToOne, PrimaryKey, Property } from "mikro-orm";
 import { MAX_DESC_LEN, MAX_NAME_LEN } from "../globals";
-import { uuid } from "../util/uuid";
+import { uuid } from "../util/id";
 import Group from "./group.entity";
 
 @Entity()

@@ -1,5 +1,5 @@
 import { Entity, PrimaryKey } from "mikro-orm";
-import { uuid } from "../util/uuid";
+import { uuid } from "../util/id";
 
 @Entity()
 class Group {
