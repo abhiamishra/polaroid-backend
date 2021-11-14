@@ -1,9 +1,6 @@
 import { Request, Response } from "../types/express"
-import Task from "../entities/task.entity"
 import { getOrm } from "../database";
 import Group from "../entities/group.entity";
-import e from "express";
-import { GroupOperator } from "mikro-orm";
 
 const createGroup = async (req: Request, res: Response) => {
     const newGroup = new Group();
@@ -13,7 +10,31 @@ const createGroup = async (req: Request, res: Response) => {
     orm.em.persist(newGroup);
     orm.em.flush();
 
-    res.status(200).json({ "status": true, "result": 'Creating a group: successful!' })
+    res.status(200).json(newGroup);
+}
+
+interface UpdateGroup {
+    id: string;
+    dateId: string;
+    numDays: string;
+}
+
+const updateTask = async (req: Request<UpdateGroup>, res: Response) => {
+    const orm = await getOrm();
+
+    const group = await orm.em.findOne(Group, { id: req.body.id });
+
+    if (group) {
+        if (req.body.dateId) {
+            group.startDay = new Date(req.body.dateId);
+        }
+        if (req.body.numDays) {
+            group.numDays = Number.parseInt(req.body.numDays);
+        }
+    }
+
+    orm.em.flush();
+    res.status(200).json({ "status": true})
 }
 
 interface UpdateGroupYes {
@@ -133,15 +154,18 @@ interface ReturnId {
 }
 
 const getGroup = async (req: Request<{}, ReturnId>, res: Response) => {
+    console.log("hi im here")
+    
     const orm = await getOrm();
 
-    const group = await orm.em.findOne(Group, { id: req.params.id });
+    console.log("params ", req.query.id)
+    const group = await orm.em.findOne(Group, { id: req.query.id });
 
     if(group){
-        res.status(200).json({group})
+        res.status(200).json(group)
     }
     else{
-        res.status(500).json({ "status": false})
+        res.status(400).json({ "status": false})
     }
 }
 
@@ -160,6 +184,7 @@ const deleteGroup = async (req: Request<DeleteId>, res: Response) => {
     }
     else{
         res.status(500).json({ "status": false})
+        return
     }
 
     orm.em.flush();
@@ -168,6 +193,7 @@ const deleteGroup = async (req: Request<DeleteId>, res: Response) => {
 
 const controller = {
     createGroup,
+    updateTask,
     updateNo,
     updateYes,
     updateUnvote,

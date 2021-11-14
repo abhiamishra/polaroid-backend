@@ -1,7 +1,10 @@
-import { Entity, LoadStrategy, MikroORM, Options, ReflectMetadataProvider } from "mikro-orm";
+import { LoadStrategy, MikroORM, Options, ReflectMetadataProvider } from "mikro-orm";
 import { PostgreSqlDriver } from "@mikro-orm/postgresql";
 import Group from "./entities/group.entity";
 import Task from "./entities/task.entity";
+import User from "./entities/user.entity";
+import UserCreds from "./entities/userCred.entity";
+import PlacedTask from "./entities/placedTask.entity";
 
 require("dotenv").config();
 
@@ -14,7 +17,7 @@ export const config: Options<PostgreSqlDriver> = {
     host: process.env.DB_HOST,
     port: 5432,
     metadataProvider: ReflectMetadataProvider,
-    entities: [Group, Task, Entity],
+    entities: [User, UserCreds, Task, Group, PlacedTask],
     loadStrategy: LoadStrategy.JOINED
 };
 
@@ -24,11 +27,11 @@ export async function getOrm() {
     if (!orm) {
         console.log("Initializing Orm...");
         orm = await MikroORM.init<PostgreSqlDriver>(config);
-        const generator = orm.getSchemaGenerator();
-        await generator.dropSchema();
-        await generator.createSchema();
-        await generator.updateSchema();
-        console.log("Initialization Complete.");
+        // const generator = orm.getSchemaGenerator();
+        // await generator.dropSchema();
+        // await generator.createSchema();
+        // await generator.updateSchema();
+        console.log("Initialization Complete. :)");
     }
     return orm;
 }

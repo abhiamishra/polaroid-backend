@@ -11,6 +11,15 @@ class Group {
 
     @Property({ type: ArrayType })
     noGroupVotes: string[] = [];
+
+    //start day
+    @Property({ type: Date })
+    startDay: Date = new Date();
+
+    //numdays
+    @Property({ type: Number })
+    numDays: Number = 7;
+
 }
 
 

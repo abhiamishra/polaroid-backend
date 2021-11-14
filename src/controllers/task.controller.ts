@@ -1,8 +1,8 @@
 import { Request, Response } from "../types/express"
 import Task from "../entities/task.entity"
 import { getOrm } from "../database";
-import { json } from "express";
 import Group from "../entities/group.entity";
+import PlacedTask from "../entities/placedTask.entity";
 
 interface CreateTask {
     name: string;
@@ -27,14 +27,14 @@ const createTask = async (req: Request<CreateTask>, res: Response) => {
         newTask.group = newGroup;
     }
     
-    newTask.description = req.body.name;
+    newTask.description = req.body.description;
     newTask.location = req.body.location;
     newTask.link = req.body.link;
 
     orm.em.persist(newTask);
     orm.em.flush();
 
-    res.status(200).json({ "status": true})
+    res.status(200).json(newTask);
 }
 
 interface UpdateTask {
@@ -187,13 +187,13 @@ interface ReturnId {
     id: string;
 }
 
-const getTask = async (req: Request<{}, ReturnId>, res: Response) => {
+const getTasks = async (req: Request<{}, ReturnId>, res: Response) => {
     const orm = await getOrm();
 
-    const task = await orm.em.findOne(Task, { id: req.params.id });
+    const tasks = await orm.em.find(Task, { group: req.query.id });
     
-    if(task){
-        res.status(200).json({task});
+    if(tasks){
+        res.status(200).json(tasks);
     }
     else{
         res.status(500).json({ "status": false})
@@ -201,7 +201,7 @@ const getTask = async (req: Request<{}, ReturnId>, res: Response) => {
 }
 
 interface DeleteId {
-    deleteId: string;
+    id: string;
 }
 
 // interface getAllTasks{
@@ -223,10 +223,10 @@ interface DeleteId {
 //     }
 // }
 
-const deleteTask = async (req: Request<DeleteId>, res: Response) => {
+const deleteTask = async (req: Request<{}, DeleteId>, res: Response) => {
     const orm = await getOrm();
 
-    const task = await orm.em.findOne(Task, { id: req.body.deleteId });
+    const task = await orm.em.findOne(Task, { id: req.query.id });
 
     if(task){
         orm.em.remove(task);
@@ -239,14 +239,14 @@ const deleteTask = async (req: Request<DeleteId>, res: Response) => {
     res.status(200).json({ "status": true})
 }
 
-const controller = {
+const controller_a = {
     createTask,
     updateTask,
     updateYes,
     updateNo,
     updateUnvote,
-    getTask,
+    getTask: getTasks,
     deleteTask
 }
 
-export { controller }
+export { controller_a }

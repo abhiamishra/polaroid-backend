@@ -8,13 +8,14 @@ const COOKIE_USER_ID = "COOKIE_USER_ID"
 
 export function getToken(req: Request) {
     // gets the user id from the cookie
-    return req.cookies[COOKIE_USER_ID] as string;
+    return req.cookies[COOKIE_USER_ID] as string | undefined;
 }
 
 const cookie = async (req: Request, res: Response, next: NextFunction) => {
     const orm = await getOrm();
-
+    
     const token = getToken(req);
+    // console.log(token);
     if (token) {
         const userCreds = await orm.em.findOne(UserCreds, { token: token });
 
@@ -25,25 +26,21 @@ const cookie = async (req: Request, res: Response, next: NextFunction) => {
             res.status(401).json({ err: "Authentication error. Id is invalid." });
         }  
     } else {
-        try {
-            const userCreds = new UserCreds();
-            const user = new User();
-            userCreds.user = user;
-    
-            orm.em.persist(userCreds);
-            orm.em.persist(user);
-    
-            await orm.em.commit();
-    
-            req.user = user;
-            res.cookie(COOKIE_USER_ID, userCreds.token, { maxAge: 2147483647, httpOnly: true });
+        // console.log("no token")
 
-            next();
-        } catch (err) {
-            await orm.em.rollback();
+        const userCreds = new UserCreds();
+        const user = new User();
+        userCreds.user = user;
 
-            res.status(500).json({ err: "Unexpected authentication error occured" });
-        }
+        orm.em.persist(userCreds);
+        orm.em.persist(user);
+
+        await orm.em.flush();
+
+        req.user = user;
+        res.cookie(COOKIE_USER_ID, userCreds.token, { maxAge: 2147483647, httpOnly: true });
+
+        next();
     }
 }
 

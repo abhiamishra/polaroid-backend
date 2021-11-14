@@ -73,11 +73,11 @@ const deleteUser = async (req: Request, res: Response) => {
     res.status(200).json({ "status": true})
 }
 
-const controller = {
+const controller_b = {
     createUser,
     updateUser,
     getUser,
     deleteUser
 }
 
-export { controller }
+export { controller_b }
