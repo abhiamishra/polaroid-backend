@@ -2,6 +2,7 @@ import { Request, Response } from "../types/express"
 import Task from "../entities/task.entity"
 import { getOrm } from "../database";
 import { json } from "express";
+import Group from "../entities/group.entity";
 
 interface CreateTask {
     name: string;
@@ -12,19 +13,28 @@ interface CreateTask {
 }
 
 const createTask = async (req: Request<CreateTask>, res: Response) => {
-    const newTask = new Task();
+    const orm = await getOrm();
 
+    const newTask = new Task();
     newTask.name = req.body.name;
+
+    const group = await orm.em.findOne(Group, { id: req.body.groupId });
+    if(group){
+        newTask.group = group;
+    }
+    else{
+        var newGroup = new Group();
+        newTask.group = newGroup;
+    }
+    
     newTask.description = req.body.name;
     newTask.location = req.body.location;
     newTask.link = req.body.link;
 
-    const orm = await getOrm();
-
     orm.em.persist(newTask);
     orm.em.flush();
 
-    res.status(200).json({ "status": true, "result": 'Creation of task: successful!' })
+    res.status(200).json({ "status": true})
 }
 
 interface UpdateTask {
@@ -58,75 +68,175 @@ const updateTask = async (req: Request<UpdateTask>, res: Response) => {
     }
 
     orm.em.flush();
-    res.status(200).json({ "status": true, "result": 'Updating of task: successful!' })
+    res.status(200).json({ "status": true})
 
 }
 
-interface UpdateYesVotes {
+interface UpdateYesVote {
     id: string;
-    yesVotes: string[];
+    voteYes: string;
 }
 
-const updateYes = async (req: Request<UpdateYesVotes>, res: Response) => {
+const updateYes = async (req: Request<UpdateYesVote>, res: Response) => {
     const orm = await getOrm();
 
     const task = await orm.em.findOne(Task, { id: req.body.id });
 
     if (task) {
-        if (req.body.yesVotes) {
-            var yesOrigString:string[] = task.yesVotes;
-            var toFind = req.body.yesVotes[0];
-            if(!yesOrigString.includes(toFind)){
-                yesOrigString.push(toFind);
+        if (req.body.voteYes) {
+            var yes_OrigString:string[] = task.yesVotes;
+            var no_OrigString:string[] = task.noVotes;
+
+            var toFind = req.user?.id;
+            if(toFind && !yes_OrigString.includes(toFind)){
+                yes_OrigString.push(toFind);
+                task.yesVotes = yes_OrigString;
+            }
+            else{
+                orm.em.flush();
+                res.status(500).json({ "status": false})
+            }
+            
+            if(toFind && no_OrigString.includes(toFind)){ 
+                var index = no_OrigString.indexOf(toFind);
+                delete no_OrigString[index];
+                task.noVotes = no_OrigString;
             }
         }
     }
 
     orm.em.flush();
-    res.status(200).json({ "status": true, "result": 'Updating yes votes: successful!' })
-
+    res.status(200).json({ "status": true, "result": 'Updating group yes votes: successful!' })
 }
 
-interface UpdateNoVotes {
+interface UpdateNoVote {
     id: string;
-    noVotes: string[];
+    voteNo: string;
 }
 
-const updateNo = async (req: Request<UpdateNoVotes>, res: Response) => {
+const updateNo = async (req: Request<UpdateNoVote>, res: Response) => {
     const orm = await getOrm();
 
     const task = await orm.em.findOne(Task, { id: req.body.id });
 
     if (task) {
-        if (req.body.noVotes) {
-            var noOrigString:string[] = task.yesVotes;
-            var toFind = req.body.noVotes[0];
-            if(!noOrigString.includes(toFind)){
-                noOrigString.push(toFind);
+        if (req.body.voteNo) {
+            var no_OrigString:string[] = task.noVotes;
+            var yes_OrigString:string[] = task.yesVotes;
+
+            var toFind = req.user?.id;
+            if(toFind && !no_OrigString.includes(toFind)){
+                no_OrigString.push(toFind);
+                task.noVotes = no_OrigString;
+            }
+            else{
+                orm.em.flush();
+                res.status(500).json({ "status": false})
+            }
+
+            if(toFind && yes_OrigString.includes(toFind)){ 
+                var index = yes_OrigString.indexOf(toFind);
+                delete yes_OrigString[index];
+
+                task.yesVotes = yes_OrigString;
+
             }
         }
     }
 
     orm.em.flush();
-    res.status(200).json({ "status": true, "result": 'Updating no votes: successful!' })
+    res.status(200).json({ "status": true, "result": 'Updating group no votes: successful!' })
+}
 
+interface UpdateUnvote {
+    id: string;
+    voteUnvote: string;
+}
+
+const updateUnvote = async (req: Request<UpdateUnvote>, res: Response) => {
+    const orm = await getOrm();
+
+    const task = await orm.em.findOne(Task, { id: req.body.id });
+
+    if (task) {
+        if (req.body.voteUnvote) {
+            var no_OrigString:string[] = task.noVotes;
+            var yes_OrigString:string[] = task.yesVotes;
+
+            var toFind = req.user?.id;
+            if(toFind && yes_OrigString.includes(toFind)){
+                var index = yes_OrigString.indexOf(toFind);
+                delete yes_OrigString[index];
+
+                task.yesVotes = yes_OrigString;
+            }
+            else if(toFind && no_OrigString.includes(toFind)){
+                var index = no_OrigString.indexOf(toFind);
+                delete no_OrigString[index];
+
+                task.noVotes = no_OrigString;
+            }
+        }
+    }
+
+    orm.em.flush();
+    res.status(200).json({ "status": true})
 }
 
 interface ReturnId {
     id: string;
 }
 
-const getTaskById = async (req: Request<ReturnId>, res: Response) => {
+const getTask = async (req: Request<{}, ReturnId>, res: Response) => {
     const orm = await getOrm();
 
-    const task = await orm.em.findOne(Task, { id: req.body.id });
+    const task = await orm.em.findOne(Task, { id: req.params.id });
     
     if(task){
         res.status(200).json({task});
     }
     else{
-        res.status(500).json({ "status": false, "result": 'Fetching a task: bad!' })
+        res.status(500).json({ "status": false})
     }
+}
+
+interface DeleteId {
+    deleteId: string;
+}
+
+// interface getAllTasks{
+//     groupId: string;
+// }
+
+// const getAllTasks = async (req: Request<getAllTasks>, res: Response) => {
+//     const orm = await getOrm();
+
+//     const task = await orm.em.findOne(Task, { id: req.body.groupId });
+
+//     var statusCode = -1;
+    
+//     if(task){
+//         res.status(200).json({task})
+//     }
+//     else{
+//         res.status(500).json({ "status": false});
+//     }
+// }
+
+const deleteTask = async (req: Request<DeleteId>, res: Response) => {
+    const orm = await getOrm();
+
+    const task = await orm.em.findOne(Task, { id: req.body.deleteId });
+
+    if(task){
+        orm.em.remove(task);
+    }
+    else{
+        res.status(500).json({ "status": false})
+    }
+
+    orm.em.flush();
+    res.status(200).json({ "status": true})
 }
 
 const controller = {
@@ -134,7 +244,9 @@ const controller = {
     updateTask,
     updateYes,
     updateNo,
-    getTaskById
+    updateUnvote,
+    getTask,
+    deleteTask
 }
 
 export { controller }

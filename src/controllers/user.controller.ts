@@ -11,26 +11,27 @@ interface CreateUser {
 const createUser = async (req: Request<CreateUser>, res: Response) => {
     const newUser = new User();
 
-    newUser.name = req.body.name;
+    if(req.body.name){
+        newUser.name = req.body.name;
 
-    const orm = await getOrm();
+        const orm = await getOrm();
 
-    orm.em.persist(newUser);
-    orm.em.flush();
-
-    res.status(200).json({ "status": true, "result": 'Creating a user: successful!' })
+        orm.em.persist(newUser);
+        orm.em.flush();
+    
+        res.status(200).json({ "status": true})
+    }
 
 }
 
 interface UpdateUser {
-    user_id: string;
     name: string;
 }
 
 const updateUser = async (req: Request<UpdateUser>, res: Response) => {
     const orm = await getOrm();
 
-    const user = await orm.em.findOne(User, { id: req.body.user_id });
+    const user = await orm.em.findOne(User, { id: req.user?.id });
 
     if (user) {
         if (req.body.name) {
@@ -40,30 +41,43 @@ const updateUser = async (req: Request<UpdateUser>, res: Response) => {
 
     orm.em.flush();
 
-    res.status(200).json({ "status": true, "result": 'Updating a user: successful!' })
+    res.status(200).json({ "status": true})
 }
 
-interface ReturnId {
-    id: string;
-}
-
-const getUserById = async (req: Request<ReturnId>, res: Response) => {
+const getUser = async (req: Request, res: Response) => {
     const orm = await getOrm();
 
-    const user = await orm.em.findOne(User, { id: req.body.id });
+    const user = await orm.em.findOne(User, { id: req.user?.id });
 
     if(user){
         res.status(200).json({user})
     }
     else{
-        res.status(500).json({ "status": false, "result": 'Fetching a user: bad!' })
+        res.status(500).json({ "status": false});
     }
+}
+
+const deleteUser = async (req: Request, res: Response) => {
+    const orm = await getOrm();
+
+    const user = await orm.em.findOne(User, { id: req.user?.id });
+
+    if(user){
+        orm.em.remove(user);
+    }
+    else{
+        res.status(500).json({ "status": false})
+    }
+
+    orm.em.flush();
+    res.status(200).json({ "status": true})
 }
 
 const controller = {
     createUser,
     updateUser,
-    getUserById
+    getUser,
+    deleteUser
 }
 
 export { controller }

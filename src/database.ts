@@ -1,5 +1,7 @@
-import { LoadStrategy, MikroORM, Options, ReflectMetadataProvider } from "mikro-orm";
+import { Entity, LoadStrategy, MikroORM, Options, ReflectMetadataProvider } from "mikro-orm";
 import { PostgreSqlDriver } from "@mikro-orm/postgresql";
+import Group from "./entities/group.entity";
+import Task from "./entities/task.entity";
 
 require("dotenv").config();
 
@@ -12,7 +14,7 @@ export const config: Options<PostgreSqlDriver> = {
     host: process.env.DB_HOST,
     port: 5432,
     metadataProvider: ReflectMetadataProvider,
-    entities: [],
+    entities: [Group, Task, Entity],
     loadStrategy: LoadStrategy.JOINED
 };
 
