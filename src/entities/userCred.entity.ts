@@ -7,8 +7,8 @@ import User from "./user.entity";
 class UserCreds {
     // used to check if I am this user or not
     // ONLY THE ACTUAL USER SHOULD BE ABLE TO SEE THIS!!!
-    @Property({ type: String })
-    token: string = secureId();
+    @PrimaryKey({ type: String})
+    token: string = secureId().substring(0,200);
 
     @OneToOne({ entity: () => User })
     user!: User;

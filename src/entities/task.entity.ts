@@ -6,16 +6,22 @@ import Group from "./group.entity";
 @Entity()
 class Task {
     @PrimaryKey({ type: String })
-    id: string = uuid();
+    id: string = uuid(); //
 
     @ManyToOne({ entity: () => Group })
-    group!: Group;
+    group!: Group; //
     
     @Property({ type: String, length: MAX_NAME_LEN })
-    name!: string;
+    name!: string; //
 
     @Property({ type: String, length: MAX_DESC_LEN })
-    description!: string;
+    description!: string; //
+
+    @Property({ type: String, length: MAX_DESC_LEN })
+    location!: string; //
+
+    @Property({ type: String, length: MAX_DESC_LEN })
+    link!: string; //
 
     @Property({ type: ArrayType })
     yesVotes: string[] = [];

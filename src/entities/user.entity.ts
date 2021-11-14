@@ -8,7 +8,7 @@ class User {
     id: string = uuid();
 
     @Property({ type: String, length: MAX_NAME_LEN })
-    name!: string;
+    name: string = "";
 }
 
 export default User;
