@@ -17,6 +17,12 @@ class Task {
     @Property({ type: String, length: MAX_DESC_LEN })
     description!: string;
 
+    @Property({ type: String, length: MAX_DESC_LEN })
+    location!: string;
+
+    @Property({ type: String, length: MAX_DESC_LEN })
+    link!: string;
+
     @Property({ type: ArrayType })
     yesVotes: string[] = [];
 
